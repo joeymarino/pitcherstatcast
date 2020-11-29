@@ -1,0 +1,416 @@
+---
+title: "Post Pitcher Project"
+author: "Joseph Marino"
+date: "11/9/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+What leads to more groundballs?
+
+```{r}
+library(tidyverse) # Load tidyverse
+library(ggplot2) # Load ggplot2
+library(ggdark) # Load ggdark
+library(ggimage) # Load ggimage
+library(GGally) # Load GGally
+library(ggrepel) # Load ggrepel
+library(ggalt) # Used for dumbbell plot
+```
+
+```{r}
+pitcher_data <- read.csv("Pitchers_past_5_years.csv")
+pitchers_2016_19 <- pitcher_data[pitcher_data$year <= 2019,]
+pitchers_2020 <- pitcher_data[pitcher_data$year == 2020,]
+pitchers_2019 <- pitcher_data[pitcher_data$year == 2019,]
+pitchers_2018 <- pitcher_data[pitcher_data$year == 2018,]
+pitchers_2017 <- pitcher_data[pitcher_data$year == 2017,]
+pitchers_2016 <- pitcher_data[pitcher_data$year == 2016,]
+
+head(pitcher_data)
+summary(pitcher_data)
+```
+
+```{r}
+# Data cleaning
+
+# Create vector of variables to be dropped
+drop_vars <- c("n_kn_formatted","kn_avg_speed","kn_avg_spin","kn_avg_break_x",
+               "kn_avg_break_z","kn_avg_break", "kn_range_speed")
+
+# Create dataframe with updated columns
+df_pitchers <- as.data.frame(pitcher_data)
+updated_pitchers <- df_pitchers[, !(colnames(df_pitchers) %in% drop_vars)]
+str(updated_pitchers)
+updated_pitchers$pitch_hand <- as.numeric(as.factor(updated_pitchers$pitch_hand)) - 1
+
+# Scale data 
+scale_pitchers <- scale(updated_pitchers[, 3:ncol(updated_pitchers)])
+scale_pitchers[is.na(scale_pitchers)] <- 0
+
+# Add teams back to data frame
+scale_pitchers <- cbind.data.frame(updated_pitchers$first_name, 
+                                   updated_pitchers$last_name, 
+                                   scale_pitchers)
+# Fix name of team column
+names(scale_pitchers)[1] <- "first_name"
+names(scale_pitchers)[2] <- "last_name"
+
+# Make datasets by year
+scale_pitchers_2016_19 <- scale_pitchers[updated_pitchers$year <= 2019,]
+scale_pitchers_2020 <- scale_pitchers[updated_pitchers$year == 2020,]
+scale_pitchers_2019 <- scale_pitchers[updated_pitchers$year == 2019,]
+scale_pitchers_2018 <- scale_pitchers[updated_pitchers$year == 2018,]
+scale_pitchers_2017 <- scale_pitchers[updated_pitchers$year == 2017,]
+scale_pitchers_2016 <- scale_pitchers[updated_pitchers$year == 2016,]
+
+# Assign first and last names to each dataset
+rownames(scale_pitchers) <- paste(updated_pitchers$first_name, 
+                                  updated_pitchers$last_name, updated_pitchers$year)
+rownames(scale_pitchers_2016) <- paste(updated_pitchers$first_name[updated_pitchers$year == 2016],
+                                       updated_pitchers$last_name[updated_pitchers$year == 2016])
+rownames(scale_pitchers_2017) <- paste(updated_pitchers$first_name[updated_pitchers$year == 2017],
+                                       updated_pitchers$last_name[updated_pitchers$year == 2017])
+rownames(scale_pitchers_2018) <- paste(updated_pitchers$first_name[updated_pitchers$year == 2018],
+                                       updated_pitchers$last_name[updated_pitchers$year == 2018])
+rownames(scale_pitchers_2019) <- paste(updated_pitchers$first_name[updated_pitchers$year == 2019],
+                                       updated_pitchers$last_name[updated_pitchers$year == 2019])
+rownames(scale_pitchers_2020) <- paste(updated_pitchers$first_name[updated_pitchers$year == 2020],
+                                       updated_pitchers$last_name[updated_pitchers$year == 2020])
+
+#head(scale_pitchers)
+#summary(scale_pitchers)
+```
+
+```{r}
+# Bootstrap Aggregation (Bagging)
+
+library(randomForest)
+library(rpart)
+library(caret)
+library(Metrics)
+```
+
+```{r}
+# Create training and test data
+set.seed(258506) # Set random number generator seed for reproducability
+test_ind <- sample(1:139, 139 * 0.2, replace = FALSE) # Select test samples
+
+updated_pitchers_groundballs <- updated_pitchers[, c(4, 7:20, 22:57, 59, 61, 68, 70:139)]
+imputed_pitchers <- rfImpute(x = updated_pitchers_groundballs, y = updated_pitchers$groundballs, iter=5, ntree=300)
+
+train_data <- imputed_pitchers[-test_ind, -1] # Create training data
+test_data <- imputed_pitchers[test_ind, -1] # Create test data
+```
+
+```{r}
+# Run Bagging Model
+
+set.seed(258506) # Set random number generator seed for reproducability
+# Use random forest to do bagging
+bag_mod <- randomForest(groundballs ~., # Set tree formula
+                data = train_data, # Set dataset
+                mtry = 123, # Set mtry to number of variables 
+                ntree = 300) # Set number of trees to use
+bag_mod # View model
+
+# Plot Bagging Model and compare results
+
+bag_preds <- predict(bag_mod, test_data) # Create predictions for bagging model
+
+plot_data <- cbind.data.frame(bag_preds, test_data$groundballs)
+names(plot_data) <- c("predictions", "actual")
+g_1 <- ggplot(plot_data, # Set dataset
+              aes(x = predictions,  # Set predictions
+                  y = actual)) +  # Set actual
+  geom_point(alpha = 0.7) + # Set geom_point for scatter
+  geom_smooth() + # Show regression line
+  dark_theme_bw() + # Set theme as dark mode
+   theme(legend.position = "right", # Turn off legend
+     panel.grid.major = element_blank(), # Remove grid
+        panel.grid.minor = element_blank(), # Remove grid
+        panel.border = element_blank(), # Remove grid
+        panel.background = element_blank()) +  # Remove grid
+    labs(y= "Actual Groundballs", x ="Predicted Groundballs", # Set labels
+       title = "Predicted to Actual Groundballs Correlation",
+       subtitle = "MLB Pitchers 2016-2020")
+g_1
+
+# Root Mean Squared Error
+rmse(test_data$groundballs, bag_preds)
+
+# Assess Bagging performance with MSE
+
+mse_error <- bag_mod$mse # Extract mean squared error
+plot_dat <- cbind.data.frame(rep(1:length(mse_error)), mse_error) # Create plot data
+names(plot_dat) <- c("trees", "mse_error") # Name plot data
+
+# Plot Mean Squared Error
+g_2 <- ggplot(plot_dat, aes(x = trees, y = mse_error)) + # Set x as trees and y as error
+  geom_point(alpha = 0.5, color = "blue") + # Select geom point
+  theme_bw() + # Set theme
+  theme(panel.grid.major = element_blank(), # Remove grid
+        panel.grid.minor = element_blank(), # Remove grid
+        panel.border = element_blank(), # Remove grid
+        panel.background = element_blank()) + # Remove grid 
+  labs(x = "Number of Trees", title = "Mean Squared Error v Number of Trees",
+       y = "Mean Squared Error")  # Set labels
+g_2 # Print plot
+
+# Bagging with Variable Importance
+
+bag_mod_2 <- randomForest(groundballs ~., # Set tree formula
+                data = train_data, # Set dataset
+                mtry = 123, # Set number of variables to try  
+                ntree = 300, # Set number of trees
+                nodesize = 200,  # Set node size
+                importance = TRUE, # Set to true to generate importance matrix
+                proximity = TRUE) # Set to true to generate proximity matrix
+                
+# Extract Importance
+importance_matrix <- importance(bag_mod_2)
+# Print importance matrix
+importance_matrix
+
+varImpPlot(bag_mod_2, type = 2, n.var = 10) # Plot importance
+```
+
+```{r}
+# XGBoost
+
+library(xgboost)
+library(caret)
+library(OptimalCutpoints)
+library(ggplot2)
+library(xgboostExplainer)
+library(pROC)
+```
+
+```{r}
+# Create training matrix
+dtrain <- xgb.DMatrix(data = as.matrix(train_data[, c(1:52, 54:124)]), label = train_data$groundballs)
+# Create test matrix
+dtest <- xgb.DMatrix(data = as.matrix(test_data[, c(1:52, 54:124)]), label = test_data$groundballs)
+```
+
+```{r}
+# Run XGBoost Model
+
+set.seed(234567)
+bst_1 <- xgboost(data = dtrain, # Set training data
+               
+               nrounds = 100, # Set number of rounds
+               
+               verbose = 1, # 1 - Prints out fit
+                print_every_n = 20) # Prints out result every 20th iteration
+
+# Plot XGBoost Model and compare results
+
+boost_preds <- predict(bst_1, dtest) # Create predictions for xgboost model
+
+pred_dat <- cbind.data.frame(boost_preds , test_data$groundballs)#
+names(pred_dat) <- c("predictions", "response")
+
+g_3 <- ggplot(pred_dat, # Set dataset
+              aes(x = predictions,  # Set predictions
+                  y = response)) +  # Set response
+  geom_point(alpha = 0.7) + # Set geom_point for scatter
+  geom_smooth() + # Show regression line
+  dark_theme_bw() + # Set theme as dark mode
+   theme(legend.position = "right", # Turn off legend
+     panel.grid.major = element_blank(), # Remove grid
+        panel.grid.minor = element_blank(), # Remove grid
+        panel.border = element_blank(), # Remove grid
+        panel.background = element_blank()) +  # Remove grid
+    labs(y= "Response Groundballs", x ="Predicted Groundballs", # Set labels
+       title = "Predicted vs. Response Groundballs Correlation (XGBoost)",
+       subtitle = "MLB Pitchers 2016-2020")
+g_3
+
+# Root Mean Squared Error
+rmse(test_data$groundballs, boost_preds)
+
+# Extract importance
+imp_mat <- xgb.importance(model = bst_1)
+# Plot importance (top 10 variables)
+xgb.plot.importance(imp_mat, top_n = 10)
+```
+
+```{r}
+source("a_insights_shap_functions.r")
+
+# Calculate SHAP importance
+shap_result <- shap.score.rank(xgb_model = bst_1, 
+                X_train =as.matrix(train_data[, c(1:52, 54:124)]),
+                shap_approx = F)
+# Plot SHAP importance
+var_importance(shap_result, top_n=10)
+shap_long = shap.prep(shap = shap_result,
+                           X_train = as.matrix(train_data[, c(1:52, 54:124)]), 
+                           top_n = 10)
+
+
+plot.shap.summary(data_long = shap_long)
+```
+
+```{r}
+library(dplyr)
+# rownames(scale_pitchers_2017)
+# rownames(scale_pitchers_2018)
+# rownames(scale_pitchers_2019)
+# rownames(scale_pitchers_2020)
+
+# Subset Players Analysis
+
+elite_pitchers_2017 <- pitchers_2017[rownames(scale_pitchers_2017) %in%
+                                       c(" Max Scherzer"," Chris Sale"," Zack Greinke"," Jacob deGrom",
+                                         " Justin Verlander"," Yu Darvish"," Stephen Strasburg",
+                                         " Carlos Carrasco"," Ervin Santana"," Corey Kluber",
+                                         " Luis Severino"," Robbie Ray"," Clayton Kershaw"," Chris Archer",
+                                         " Gerrit Cole","Jimmy Nelson"),
+                                     colnames(scale_pitchers_2017) %in%
+                                       c("last_name","first_name","edge","out_zone","in_zone",
+                                         "poorlyunder_percent","pitch_count","in_zone_swing",
+                                         "out_zone_swing","poorlytoppd_percent","pitch_count_fastball",
+                                         "n_ff_formatted","z_swing_miss_percent","whiff_percent")]
+elite_pitchers_2018 <- pitchers_2018[rownames(scale_pitchers_2018) %in%
+                                       c(" Zack Wheeler"," Charlie Morton"," Miles Mikolas"," Sonny Gray",
+                                         " Jameson Taillon"," Blake Snell"," Luis Severino",
+                                         " Nick Pivetta"," German Marquez"," Justin Verlander",
+                                         " Gerrit Cole"," Trevor Bauer"," Jacob deGrom"," Aaron Nola",
+                                         " Mike Clevinger"," Max Scherzer"," Mike Foltynewicz",
+                                         " Carlos Carrasco"," Jose Berrios"," Corey Kluber"),
+                                     colnames(scale_pitchers_2017) %in%
+                                       c("last_name","first_name","edge","out_zone","in_zone",
+                                         "poorlyunder_percent","pitch_count","in_zone_swing",
+                                         "out_zone_swing","poorlytoppd_percent","pitch_count_fastball",
+                                         "n_ff_formatted","z_swing_miss_percent","whiff_percent")]
+elite_pitchers_2019 <- pitchers_2019[rownames(scale_pitchers_2019) %in%
+                                       c(" Marcus Stroman"," Charlie Morton"," Sonny Gray",
+                                         " Luis Castillo"," Adam Wainwright"," Aaron Nola"," Mike Soroka",
+                                         " Zack Greinke"," Stephen Strasburg"," Yu Darvish",
+                                         " Trevor Bauer"," Matthew Boyd"," Max Scherzer"," Walker Buehler",
+                                         " Zack Wheeler"," Lucas Giolito"," Gerrit Cole"," Jacob deGrom",
+                                         " Mike Minor"," Clayton Kershaw"," Justin Verlander",
+                                         " Noah Syndergaard"," Lance Lynn"," Jack Flaherty"),
+                                     colnames(scale_pitchers_2017) %in%
+                                       c("last_name","first_name","edge","out_zone","in_zone",
+                                         "poorlyunder_percent","pitch_count","in_zone_swing",
+                                         "out_zone_swing","poorlytoppd_percent","pitch_count_fastball",
+                                         "n_ff_formatted","z_swing_miss_percent","whiff_percent")]
+elite_pitchers_2020 <- pitchers_2020[rownames(scale_pitchers_2020) %in%
+                                       c(" Kenta Maeda"," Dylan Bundy"," Dinelson Lamet"," Lance Lynn",
+                                         " Gerrit Cole"," Carlos Carrasco"," Yu Darvish"," Shane Bieber",
+                                         " Trevor Bauer"," Jacob deGrom"," Brandon Woodruff",
+                                         " Lucas Giolito"),
+                                     colnames(scale_pitchers_2017) %in%
+                                       c("last_name","first_name","edge","out_zone","in_zone",
+                                         "poorlyunder_percent","pitch_count","in_zone_swing",
+                                         "out_zone_swing","poorlytoppd_percent","pitch_count_fastball",
+                                         "n_ff_formatted","z_swing_miss_percent","whiff_percent")]
+elite_pitchers_2017
+elite_pitchers_2018
+elite_pitchers_2019
+elite_pitchers_2020
+```
+
+```{r}
+summary(elite_pitchers_2017)
+summary(elite_pitchers_2018)
+summary(elite_pitchers_2019)
+summary(elite_pitchers_2020)
+```
+
+```{r}
+# Rest of League
+'%ni%' <- Negate('%in%')
+
+non_elite_pitchers_2017 <- pitchers_2017[rownames(scale_pitchers_2017) %ni%
+                                       c(" Max Scherzer"," Chris Sale"," Zack Greinke"," Jacob deGrom",
+                                         " Justin Verlander"," Yu Darvish"," Stephen Strasburg",
+                                         " Carlos Carrasco"," Ervin Santana"," Corey Kluber",
+                                         " Luis Severino"," Robbie Ray"," Clayton Kershaw"," Chris Archer",
+                                         " Gerrit Cole","Jimmy Nelson"),
+                                     colnames(scale_pitchers_2017) %in%
+                                       c("last_name","first_name","edge","out_zone","in_zone",
+                                         "poorlyunder_percent","pitch_count","in_zone_swing",
+                                         "out_zone_swing","poorlytoppd_percent","pitch_count_fastball",
+                                         "n_ff_formatted","z_swing_miss_percent","whiff_percent")]
+non_elite_pitchers_2018 <- pitchers_2018[rownames(scale_pitchers_2018) %ni%
+                                       c(" Zack Wheeler"," Charlie Morton"," Miles Mikolas"," Sonny Gray",
+                                         " Jameson Taillon"," Blake Snell"," Luis Severino",
+                                         " Nick Pivetta"," German Marquez"," Justin Verlander",
+                                         " Gerrit Cole"," Trevor Bauer"," Jacob deGrom"," Aaron Nola",
+                                         " Mike Clevinger"," Max Scherzer"," Mike Foltynewicz",
+                                         " Carlos Carrasco"," Jose Berrios"," Corey Kluber"),
+                                     colnames(scale_pitchers_2017) %in%
+                                       c("last_name","first_name","edge","out_zone","in_zone",
+                                         "poorlyunder_percent","pitch_count","in_zone_swing",
+                                         "out_zone_swing","poorlytoppd_percent","pitch_count_fastball",
+                                         "n_ff_formatted","z_swing_miss_percent","whiff_percent")]
+non_elite_pitchers_2019 <- pitchers_2019[rownames(scale_pitchers_2019) %ni%
+                                       c(" Marcus Stroman"," Charlie Morton"," Sonny Gray",
+                                         " Luis Castillo"," Adam Wainwright"," Aaron Nola"," Mike Soroka",
+                                         " Zack Greinke"," Stephen Strasburg"," Yu Darvish",
+                                         " Trevor Bauer"," Matthew Boyd"," Max Scherzer"," Walker Buehler",
+                                         " Zack Wheeler"," Lucas Giolito"," Gerrit Cole"," Jacob deGrom",
+                                         " Mike Minor"," Clayton Kershaw"," Justin Verlander",
+                                         " Noah Syndergaard"," Lance Lynn"," Jack Flaherty"),
+                                     colnames(scale_pitchers_2017) %in%
+                                       c("last_name","first_name","edge","out_zone","in_zone",
+                                         "poorlyunder_percent","pitch_count","in_zone_swing",
+                                         "out_zone_swing","poorlytoppd_percent","pitch_count_fastball",
+                                         "n_ff_formatted","z_swing_miss_percent","whiff_percent")]
+non_elite_pitchers_2020 <- pitchers_2020[rownames(scale_pitchers_2020) %ni%
+                                       c(" Kenta Maeda"," Dylan Bundy"," Dinelson Lamet"," Lance Lynn",
+                                         " Gerrit Cole"," Carlos Carrasco"," Yu Darvish"," Shane Bieber",
+                                         " Trevor Bauer"," Jacob deGrom"," Brandon Woodruff",
+                                         " Lucas Giolito"),
+                                     colnames(scale_pitchers_2017) %in%
+                                       c("last_name","first_name","edge","out_zone","in_zone",
+                                         "poorlyunder_percent","pitch_count","in_zone_swing",
+                                         "out_zone_swing","poorlytoppd_percent","pitch_count_fastball",
+                                         "n_ff_formatted","z_swing_miss_percent","whiff_percent")]
+non_elite_pitchers_2017
+non_elite_pitchers_2018
+non_elite_pitchers_2019
+non_elite_pitchers_2020
+```
+
+```{r}
+print("2017 out_zone_swing")
+mean(elite_pitchers_2017$out_zone_swing)
+mean(non_elite_pitchers_2017$out_zone_swing)
+print("2018 out_zone_swing")
+mean(elite_pitchers_2018$out_zone_swing)
+mean(non_elite_pitchers_2018$out_zone_swing)
+print("2019 out_zone_swing")
+mean(elite_pitchers_2019$out_zone_swing)
+mean(non_elite_pitchers_2019$out_zone_swing)
+print("2020 out_zone_swing")
+mean(elite_pitchers_2020$out_zone_swing)
+mean(non_elite_pitchers_2020$out_zone_swing)
+```
+
+```{r}
+print("2017 Edge")
+mean(elite_pitchers_2017$edge)
+mean(non_elite_pitchers_2017$edge)
+print("2018 Edge")
+mean(elite_pitchers_2018$edge)
+mean(non_elite_pitchers_2018$edge)
+print("2019 Edge")
+mean(elite_pitchers_2019$edge)
+mean(non_elite_pitchers_2019$edge)
+print("2020 Edge")
+mean(elite_pitchers_2020$edge)
+mean(non_elite_pitchers_2020$edge)
+```
+
+Elite pitchers have consistently made hitters chase pitches and hit the corners of the strike zone more frequently than the rest of the league.
+
+
+
