@@ -265,6 +265,20 @@ library(dplyr)
 
 # Subset Players Analysis
 
+elite_pitchers_2016 <- pitchers_2016[rownames(scale_pitchers_2016) %in%
+                                       c(" Masahiro Tanaka"," Dan Straily"," Max Scherzer"," John Lackey",
+                                         " Sonny Gray"," Jose Fernandez"," Justin Verlander",
+                                         " Michael Pineda"," Kenta Maeda"," Ian Kennedy",
+                                         " Madison Bumgarner"," Chris Archer"," Jeff Samardzija",
+                                         " Tom Koehler"," Marco Estrada"," Ervin Santana"," Rick Porcello",
+                                         " Jerad Eickhoff"," Johnny Cueto"," Jake Odorizzi",
+                                         " Jason Hammel"," Chris Tillman"," Noah Syndergaard",
+                                         " Corey Kluber"," Kevin Gausman"," Julio Teheran",
+                                         " Jeremy Hellickson"," Jake Arrieta"),
+                                     colnames(scale_pitchers_2016) %in%
+                                       c("last_name","first_name","groundballs","fs_avg_spin","out_zone",
+                                         "n","edge","out_zone_swing","linedrives","woba","pitch_count",
+                                         "in_zone_swing")]
 elite_pitchers_2017 <- pitchers_2017[rownames(scale_pitchers_2017) %in%
                                        c(" Max Scherzer"," Chris Sale"," Zack Greinke"," Jacob deGrom",
                                          " Justin Verlander"," Yu Darvish"," Stephen Strasburg",
@@ -272,10 +286,9 @@ elite_pitchers_2017 <- pitchers_2017[rownames(scale_pitchers_2017) %in%
                                          " Luis Severino"," Robbie Ray"," Clayton Kershaw"," Chris Archer",
                                          " Gerrit Cole","Jimmy Nelson"),
                                      colnames(scale_pitchers_2017) %in%
-                                       c("last_name","first_name","edge","out_zone","in_zone",
-                                         "poorlyunder_percent","pitch_count","in_zone_swing",
-                                         "out_zone_swing","poorlytoppd_percent","pitch_count_fastball",
-                                         "n_ff_formatted","z_swing_miss_percent","whiff_percent")]
+                                       c("last_name","first_name","groundballs","fs_avg_spin","out_zone",
+                                         "n","edge","out_zone_swing","linedrives","woba","pitch_count",
+                                         "in_zone_swing")]
 elite_pitchers_2018 <- pitchers_2018[rownames(scale_pitchers_2018) %in%
                                        c(" Zack Wheeler"," Charlie Morton"," Miles Mikolas"," Sonny Gray",
                                          " Jameson Taillon"," Blake Snell"," Luis Severino",
@@ -283,34 +296,30 @@ elite_pitchers_2018 <- pitchers_2018[rownames(scale_pitchers_2018) %in%
                                          " Gerrit Cole"," Trevor Bauer"," Jacob deGrom"," Aaron Nola",
                                          " Mike Clevinger"," Max Scherzer"," Mike Foltynewicz",
                                          " Carlos Carrasco"," Jose Berrios"," Corey Kluber"),
-                                     colnames(scale_pitchers_2017) %in%
-                                       c("last_name","first_name","edge","out_zone","in_zone",
-                                         "poorlyunder_percent","pitch_count","in_zone_swing",
-                                         "out_zone_swing","poorlytoppd_percent","pitch_count_fastball",
-                                         "n_ff_formatted","z_swing_miss_percent","whiff_percent")]
+                                     colnames(scale_pitchers_2018) %in%
+                                       c("last_name","first_name","groundballs","fs_avg_spin","out_zone",
+                                         "n","edge","out_zone_swing","linedrives","woba","pitch_count",
+                                         "in_zone_swing")]
 elite_pitchers_2019 <- pitchers_2019[rownames(scale_pitchers_2019) %in%
-                                       c(" Marcus Stroman"," Charlie Morton"," Sonny Gray",
-                                         " Luis Castillo"," Adam Wainwright"," Aaron Nola"," Mike Soroka",
-                                         " Zack Greinke"," Stephen Strasburg"," Yu Darvish",
-                                         " Trevor Bauer"," Matthew Boyd"," Max Scherzer"," Walker Buehler",
-                                         " Zack Wheeler"," Lucas Giolito"," Gerrit Cole"," Jacob deGrom",
-                                         " Mike Minor"," Clayton Kershaw"," Justin Verlander",
-                                         " Noah Syndergaard"," Lance Lynn"," Jack Flaherty"),
-                                     colnames(scale_pitchers_2017) %in%
-                                       c("last_name","first_name","edge","out_zone","in_zone",
-                                         "poorlyunder_percent","pitch_count","in_zone_swing",
-                                         "out_zone_swing","poorlytoppd_percent","pitch_count_fastball",
-                                         "n_ff_formatted","z_swing_miss_percent","whiff_percent")]
+                                       c(" Charlie Morton"," Max Scherzer"," Sonny Gray"," Luis Castillo",
+                                         " Walker Buehler"," Zack Wheeler"," Lucas Giolito",
+                                         " Gerrit Cole"," Jacob deGrom"," Stephen Strasburg",
+                                         " Justin Verlander"," Noah Syndergaard"," Lance Lynn",
+                                         " Jack Flaherty"," Yu Darvish"," Trevor Bauer"),
+                                     colnames(scale_pitchers_2019) %in%
+                                       c("last_name","first_name","groundballs","fs_avg_spin","out_zone",
+                                         "n","edge","out_zone_swing","linedrives","woba","pitch_count",
+                                         "in_zone_swing")]
 elite_pitchers_2020 <- pitchers_2020[rownames(scale_pitchers_2020) %in%
                                        c(" Kenta Maeda"," Dylan Bundy"," Dinelson Lamet"," Lance Lynn",
                                          " Gerrit Cole"," Carlos Carrasco"," Yu Darvish"," Shane Bieber",
                                          " Trevor Bauer"," Jacob deGrom"," Brandon Woodruff",
                                          " Lucas Giolito"),
-                                     colnames(scale_pitchers_2017) %in%
-                                       c("last_name","first_name","edge","out_zone","in_zone",
-                                         "poorlyunder_percent","pitch_count","in_zone_swing",
-                                         "out_zone_swing","poorlytoppd_percent","pitch_count_fastball",
-                                         "n_ff_formatted","z_swing_miss_percent","whiff_percent")]
+                                     colnames(scale_pitchers_2020) %in%
+                                       c("last_name","first_name","groundballs","fs_avg_spin","out_zone",
+                                         "n","edge","out_zone_swing","linedrives","woba","pitch_count",
+                                         "in_zone_swing")]
+elite_pitchers_2016
 elite_pitchers_2017
 elite_pitchers_2018
 elite_pitchers_2019
@@ -318,6 +327,7 @@ elite_pitchers_2020
 ```
 
 ```{r}
+summary(elite_pitchers_2016)
 summary(elite_pitchers_2017)
 summary(elite_pitchers_2018)
 summary(elite_pitchers_2019)
@@ -328,6 +338,20 @@ summary(elite_pitchers_2020)
 # Rest of League
 '%ni%' <- Negate('%in%')
 
+non_elite_pitchers_2016 <- pitchers_2016[rownames(scale_pitchers_2016) %ni%
+                                       c(" Masahiro Tanaka"," Dan Straily"," Max Scherzer"," John Lackey",
+                                         " Sonny Gray"," Jose Fernandez"," Justin Verlander",
+                                         " Michael Pineda"," Kenta Maeda"," Ian Kennedy",
+                                         " Madison Bumgarner"," Chris Archer"," Jeff Samardzija",
+                                         " Tom Koehler"," Marco Estrada"," Ervin Santana"," Rick Porcello",
+                                         " Jerad Eickhoff"," Johnny Cueto"," Jake Odorizzi",
+                                         " Jason Hammel"," Chris Tillman"," Noah Syndergaard",
+                                         " Corey Kluber"," Kevin Gausman"," Julio Teheran",
+                                         " Jeremy Hellickson"," Jake Arrieta"),
+                                     colnames(scale_pitchers_2016) %in%
+                                       c("last_name","first_name","groundballs","fs_avg_spin","out_zone",
+                                         "n","edge","out_zone_swing","linedrives","woba","pitch_count",
+                                         "in_zone_swing")]
 non_elite_pitchers_2017 <- pitchers_2017[rownames(scale_pitchers_2017) %ni%
                                        c(" Max Scherzer"," Chris Sale"," Zack Greinke"," Jacob deGrom",
                                          " Justin Verlander"," Yu Darvish"," Stephen Strasburg",
@@ -335,10 +359,9 @@ non_elite_pitchers_2017 <- pitchers_2017[rownames(scale_pitchers_2017) %ni%
                                          " Luis Severino"," Robbie Ray"," Clayton Kershaw"," Chris Archer",
                                          " Gerrit Cole","Jimmy Nelson"),
                                      colnames(scale_pitchers_2017) %in%
-                                       c("last_name","first_name","edge","out_zone","in_zone",
-                                         "poorlyunder_percent","pitch_count","in_zone_swing",
-                                         "out_zone_swing","poorlytoppd_percent","pitch_count_fastball",
-                                         "n_ff_formatted","z_swing_miss_percent","whiff_percent")]
+                                       c("last_name","first_name","groundballs","fs_avg_spin","out_zone",
+                                         "n","edge","out_zone_swing","linedrives","woba","pitch_count",
+                                         "in_zone_swing")]
 non_elite_pitchers_2018 <- pitchers_2018[rownames(scale_pitchers_2018) %ni%
                                        c(" Zack Wheeler"," Charlie Morton"," Miles Mikolas"," Sonny Gray",
                                          " Jameson Taillon"," Blake Snell"," Luis Severino",
@@ -346,34 +369,30 @@ non_elite_pitchers_2018 <- pitchers_2018[rownames(scale_pitchers_2018) %ni%
                                          " Gerrit Cole"," Trevor Bauer"," Jacob deGrom"," Aaron Nola",
                                          " Mike Clevinger"," Max Scherzer"," Mike Foltynewicz",
                                          " Carlos Carrasco"," Jose Berrios"," Corey Kluber"),
-                                     colnames(scale_pitchers_2017) %in%
-                                       c("last_name","first_name","edge","out_zone","in_zone",
-                                         "poorlyunder_percent","pitch_count","in_zone_swing",
-                                         "out_zone_swing","poorlytoppd_percent","pitch_count_fastball",
-                                         "n_ff_formatted","z_swing_miss_percent","whiff_percent")]
+                                     colnames(scale_pitchers_2018) %in%
+                                       c("last_name","first_name","groundballs","fs_avg_spin","out_zone",
+                                         "n","edge","out_zone_swing","linedrives","woba","pitch_count",
+                                         "in_zone_swing")]
 non_elite_pitchers_2019 <- pitchers_2019[rownames(scale_pitchers_2019) %ni%
-                                       c(" Marcus Stroman"," Charlie Morton"," Sonny Gray",
-                                         " Luis Castillo"," Adam Wainwright"," Aaron Nola"," Mike Soroka",
-                                         " Zack Greinke"," Stephen Strasburg"," Yu Darvish",
-                                         " Trevor Bauer"," Matthew Boyd"," Max Scherzer"," Walker Buehler",
-                                         " Zack Wheeler"," Lucas Giolito"," Gerrit Cole"," Jacob deGrom",
-                                         " Mike Minor"," Clayton Kershaw"," Justin Verlander",
-                                         " Noah Syndergaard"," Lance Lynn"," Jack Flaherty"),
-                                     colnames(scale_pitchers_2017) %in%
-                                       c("last_name","first_name","edge","out_zone","in_zone",
-                                         "poorlyunder_percent","pitch_count","in_zone_swing",
-                                         "out_zone_swing","poorlytoppd_percent","pitch_count_fastball",
-                                         "n_ff_formatted","z_swing_miss_percent","whiff_percent")]
+                                       c(" Charlie Morton"," Max Scherzer"," Sonny Gray"," Luis Castillo",
+                                         " Walker Buehler"," Zack Wheeler"," Lucas Giolito",
+                                         " Gerrit Cole"," Jacob deGrom"," Stephen Strasburg",
+                                         " Justin Verlander"," Noah Syndergaard"," Lance Lynn",
+                                         " Jack Flaherty"," Yu Darvish"," Trevor Bauer"),
+                                     colnames(scale_pitchers_2019) %in%
+                                       c("last_name","first_name","groundballs","fs_avg_spin","out_zone",
+                                         "n","edge","out_zone_swing","linedrives","woba","pitch_count",
+                                         "in_zone_swing")]
 non_elite_pitchers_2020 <- pitchers_2020[rownames(scale_pitchers_2020) %ni%
                                        c(" Kenta Maeda"," Dylan Bundy"," Dinelson Lamet"," Lance Lynn",
                                          " Gerrit Cole"," Carlos Carrasco"," Yu Darvish"," Shane Bieber",
                                          " Trevor Bauer"," Jacob deGrom"," Brandon Woodruff",
                                          " Lucas Giolito"),
-                                     colnames(scale_pitchers_2017) %in%
-                                       c("last_name","first_name","edge","out_zone","in_zone",
-                                         "poorlyunder_percent","pitch_count","in_zone_swing",
-                                         "out_zone_swing","poorlytoppd_percent","pitch_count_fastball",
-                                         "n_ff_formatted","z_swing_miss_percent","whiff_percent")]
+                                     colnames(scale_pitchers_2020) %in%
+                                       c("last_name","first_name","groundballs","fs_avg_spin","out_zone",
+                                         "n","edge","out_zone_swing","linedrives","woba","pitch_count",
+                                         "in_zone_swing")]
+non_elite_pitchers_2016
 non_elite_pitchers_2017
 non_elite_pitchers_2018
 non_elite_pitchers_2019
@@ -381,6 +400,9 @@ non_elite_pitchers_2020
 ```
 
 ```{r}
+print("2016 out_zone_swing")
+mean(elite_pitchers_2016$out_zone_swing)
+mean(non_elite_pitchers_2016$out_zone_swing)
 print("2017 out_zone_swing")
 mean(elite_pitchers_2017$out_zone_swing)
 mean(non_elite_pitchers_2017$out_zone_swing)
@@ -396,6 +418,9 @@ mean(non_elite_pitchers_2020$out_zone_swing)
 ```
 
 ```{r}
+print("2016 Edge")
+mean(elite_pitchers_2016$edge)
+mean(non_elite_pitchers_2016$edge)
 print("2017 Edge")
 mean(elite_pitchers_2017$edge)
 mean(non_elite_pitchers_2017$edge)
